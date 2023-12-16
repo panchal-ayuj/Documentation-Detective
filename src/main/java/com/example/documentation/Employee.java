@@ -1,9 +1,11 @@
 package com.example.documentation;
 
+import annotation.ClassDocumentation;
+import annotation.MethodDocumentation;
+
 /**
  * Employee javadoc
  */
-@ClassDocumentation("Employee")
 public class Employee {
     /**
      * employeeMethod1 javadoc

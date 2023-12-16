@@ -1,9 +1,9 @@
 package com.example.documentation;
 
 
-/**
- * Doctor javadoc
- */
+import annotation.ClassDocumentation;
+import annotation.MethodDocumentation;
+
 @ClassDocumentation("Doctor")
 public class Doctor {
     /**

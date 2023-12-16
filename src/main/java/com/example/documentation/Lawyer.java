@@ -1,5 +1,8 @@
 package com.example.documentation;
 
+import annotation.ClassDocumentation;
+import annotation.MethodDocumentation;
+
 /**
  * Lawyer javadoc
  */

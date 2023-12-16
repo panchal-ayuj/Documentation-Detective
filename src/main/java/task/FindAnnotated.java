@@ -7,6 +7,8 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.comments.JavadocComment;
+import com.google.common.reflect.ClassPath;
+import org.gradle.api.tasks.Classpath;
 import org.reflections.*;
 import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.scanners.SubTypesScanner;
@@ -19,19 +21,36 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.io.*;
 
 public class FindAnnotated {
 
-    private static String annotationClassName = "com.example.documentation.ClassDocumentation";
-    private static String annotationMethodName = "com.example.documentation.MethodDocumentation";
+    private static String annotationClassName = "annotation.ClassDocumentation";
+    private static String annotationMethodName = "annotation.MethodDocumentation";
 
 
 
     public static void main(String[] args) throws IOException {
 
+        String filePath = "C:\\Users\\panchal.kumar\\IdeaProjects\\documentation\\src\\main\\resources\\output.txt";
+
         String packageName = "com.example.documentation";
+
+        Set<Class<?>> classes = new HashSet<>();
+        System.out.println("Classes in the package:");
+        try {
+            ClassPath classPath = ClassPath.from(Thread.currentThread().getContextClassLoader());
+            for (ClassPath.ClassInfo classInfo : classPath.getTopLevelClasses(packageName)) {
+                System.out.println(classInfo.getName());
+                classes.add(classInfo.load());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println();
 
         Reflections reflections2 = new org.reflections.Reflections(packageName, new MethodAnnotationsScanner());
 
@@ -54,9 +73,10 @@ public class FindAnnotated {
 //
 //        Reflections reflections3 = new Reflections(packageName, new SubTypesScanner());
 //        Set<Class<?>> classes = reflections3.getSubTypesOf(Object.class);
-
+        Set<Class<?>> annotationClassWithoutJdoc = new HashSet<>();
+        Set<Class<?>> javadocClassWithoutAnnotation = new HashSet<>();
         System.out.println("Classes with javadoc:");
-        for (Class<?> clazz : annotationClasses) {
+        for (Class<?> clazz : classes) {
             String classPath = clazz.getName().replace(".", "/") + ".java";
 //            System.out.println(classPath);
             try {
@@ -69,6 +89,11 @@ public class FindAnnotated {
                         System.out.println("Class: " + clazz.getName());
                         System.out.println("Javadoc:\n" + javadoc);
                         System.out.println("-------------------------------");
+                        if(!annotationClasses.contains(clazz)){
+                            javadocClassWithoutAnnotation.add(clazz);
+                        }
+                    } else {
+                        annotationClassWithoutJdoc.add(clazz);
                     }
                 });
 
@@ -77,9 +102,20 @@ public class FindAnnotated {
             }
         }
         System.out.println();
+        System.out.println("Class with annotation but no javadoc:" );
+        for (Class<?> clazz : annotationClassWithoutJdoc) {
+            System.out.println("Class: " + clazz.getName());
+        }
+        System.out.println();
+
+        System.out.println("Class with javadoc but no annotation:");
+        for (Class<?> clazz : javadocClassWithoutAnnotation) {
+            System.out.println("Class: " + clazz.getName());
+        }
+        System.out.println();
 
         System.out.println("Methods with javadoc:");
-        for (Class<?> clazz : annotationClasses) {
+        for (Class<?> clazz : classes) {
             String classPath = clazz.getName().replace(".", "/") + ".java";
             try {
                 String sourceCode = new String(Files.readAllBytes(Paths.get("src/main/java", classPath)));
@@ -97,7 +133,6 @@ public class FindAnnotated {
                 e.printStackTrace();
             }
         }
-
     }
 
     private static Class<? extends Annotation> getClassForName(String className) {
