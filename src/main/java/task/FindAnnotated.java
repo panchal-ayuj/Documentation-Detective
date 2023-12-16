@@ -37,102 +37,111 @@ public class FindAnnotated {
 
         String filePath = "C:\\Users\\panchal.kumar\\IdeaProjects\\documentation\\src\\main\\resources\\output.txt";
 
-        String packageName = "com.example.documentation";
+        try(FileOutputStream fileOutputStream = new FileOutputStream(filePath);
+            PrintStream printStream = new PrintStream(fileOutputStream)) {
 
-        Set<Class<?>> classes = new HashSet<>();
-        System.out.println("Classes in the package:");
-        try {
-            ClassPath classPath = ClassPath.from(Thread.currentThread().getContextClassLoader());
-            for (ClassPath.ClassInfo classInfo : classPath.getTopLevelClasses(packageName)) {
-                System.out.println(classInfo.getName());
-                classes.add(classInfo.load());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        System.out.println();
+            System.setOut(printStream);
 
-        Reflections reflections2 = new org.reflections.Reflections(packageName, new MethodAnnotationsScanner());
+            String packageName = "com.example.documentation";
 
-
-        Reflections reflections = new org.reflections.Reflections(packageName);
-
-        Set<Class<?>> annotationClasses = reflections.getTypesAnnotatedWith(getClassForName(annotationClassName), true);
-        System.out.println("Classes with @" + annotationClassName + ":");
-        for (Class<?> annotatedClass : annotationClasses) {
-            System.out.println(annotatedClass.getName());
-        }
-        System.out.println();
-
-        Set<Method> annotatedMethods = reflections2.getMethodsAnnotatedWith(getClassForName(annotationMethodName));
-        System.out.println("Methods with @" + annotationMethodName + ":");
-        for (Method annotationMethod : annotatedMethods) {
-            System.out.println(annotationMethod);
-        }
-        System.out.println();
-//
-//        Reflections reflections3 = new Reflections(packageName, new SubTypesScanner());
-//        Set<Class<?>> classes = reflections3.getSubTypesOf(Object.class);
-        Set<Class<?>> annotationClassWithoutJdoc = new HashSet<>();
-        Set<Class<?>> javadocClassWithoutAnnotation = new HashSet<>();
-        System.out.println("Classes with javadoc:");
-        for (Class<?> clazz : classes) {
-            String classPath = clazz.getName().replace(".", "/") + ".java";
-//            System.out.println(classPath);
+            Set<Class<?>> classes = new HashSet<>();
+            System.out.println("Classes in the package:");
             try {
-                String sourceCode = new String(Files.readAllBytes(Paths.get("src/main/java", classPath)));
-                CompilationUnit cu = StaticJavaParser.parse(sourceCode);
-
-                cu.findAll(ClassOrInterfaceDeclaration.class).forEach(classDeclaration -> {
-                    if (classDeclaration.getComment().isPresent() && classDeclaration.getComment().get() instanceof JavadocComment) {
-                        String javadoc = ((JavadocComment) classDeclaration.getComment().get()).getContent();
-                        System.out.println("Class: " + clazz.getName());
-                        System.out.println("Javadoc:\n" + javadoc);
-                        System.out.println("-------------------------------");
-                        if(!annotationClasses.contains(clazz)){
-                            javadocClassWithoutAnnotation.add(clazz);
-                        }
-                    } else {
-                        annotationClassWithoutJdoc.add(clazz);
-                    }
-                });
-
+                ClassPath classPath = ClassPath.from(Thread.currentThread().getContextClassLoader());
+                for (ClassPath.ClassInfo classInfo : classPath.getTopLevelClasses(packageName)) {
+                    System.out.println(classInfo.getName());
+                    classes.add(classInfo.load());
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-        System.out.println();
-        System.out.println("Class with annotation but no javadoc:" );
-        for (Class<?> clazz : annotationClassWithoutJdoc) {
-            System.out.println("Class: " + clazz.getName());
-        }
-        System.out.println();
+            System.out.println();
 
-        System.out.println("Class with javadoc but no annotation:");
-        for (Class<?> clazz : javadocClassWithoutAnnotation) {
-            System.out.println("Class: " + clazz.getName());
-        }
-        System.out.println();
+            Reflections reflections2 = new org.reflections.Reflections(packageName, new MethodAnnotationsScanner());
 
-        System.out.println("Methods with javadoc:");
-        for (Class<?> clazz : classes) {
-            String classPath = clazz.getName().replace(".", "/") + ".java";
-            try {
-                String sourceCode = new String(Files.readAllBytes(Paths.get("src/main/java", classPath)));
-                CompilationUnit cu = StaticJavaParser.parse(sourceCode);
 
-                cu.findAll(MethodDeclaration.class).forEach(method -> {
-                    if (method.getComment().isPresent() && method.getComment().get() instanceof JavadocComment) {
-                        String javadoc = ((JavadocComment) method.getComment().get()).getContent();
-                        System.out.println("Method: " + method.getDeclarationAsString());
-                        System.out.println("Javadoc:\n" + javadoc);
-                        System.out.println("-------------------------------");
-                    }
-                });
-            } catch (IOException | ParseProblemException e) {
-                e.printStackTrace();
+            Reflections reflections = new org.reflections.Reflections(packageName);
+
+            Set<Class<?>> annotationClasses = reflections.getTypesAnnotatedWith(getClassForName(annotationClassName), true);
+            System.out.println("Classes with @" + annotationClassName + ":");
+            for (Class<?> annotatedClass : annotationClasses) {
+                System.out.println(annotatedClass.getName());
             }
+            System.out.println();
+
+            Set<Method> annotatedMethods = reflections2.getMethodsAnnotatedWith(getClassForName(annotationMethodName));
+            System.out.println("Methods with @" + annotationMethodName + ":");
+            for (Method annotationMethod : annotatedMethods) {
+                System.out.println(annotationMethod);
+            }
+            System.out.println();
+//
+//        Reflections reflections3 = new Reflections(packageName, new SubTypesScanner());
+//        Set<Class<?>> classes = reflections3.getSubTypesOf(Object.class);
+            Set<Class<?>> annotationClassWithoutJdoc = new HashSet<>();
+            Set<Class<?>> javadocClassWithoutAnnotation = new HashSet<>();
+            System.out.println("Classes with javadoc:");
+            for (Class<?> clazz : classes) {
+                String classPath = clazz.getName().replace(".", "/") + ".java";
+//            System.out.println(classPath);
+                try {
+                    String sourceCode = new String(Files.readAllBytes(Paths.get("src/main/java", classPath)));
+                    CompilationUnit cu = StaticJavaParser.parse(sourceCode);
+
+                    cu.findAll(ClassOrInterfaceDeclaration.class).forEach(classDeclaration -> {
+                        if (classDeclaration.getComment().isPresent() && classDeclaration.getComment().get() instanceof JavadocComment) {
+                            String javadoc = ((JavadocComment) classDeclaration.getComment().get()).getContent();
+                            System.out.println("Class: " + clazz.getName());
+                            System.out.println("Javadoc:\n" + javadoc);
+                            System.out.println("-------------------------------");
+                            if(!annotationClasses.contains(clazz)){
+                                javadocClassWithoutAnnotation.add(clazz);
+                            }
+                        } else {
+                            annotationClassWithoutJdoc.add(clazz);
+                        }
+                    });
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            System.out.println();
+            System.out.println("Class with annotation but no javadoc:" );
+            for (Class<?> clazz : annotationClassWithoutJdoc) {
+                System.out.println("Class: " + clazz.getName());
+            }
+            System.out.println();
+
+            System.out.println("Class with javadoc but no annotation:");
+            for (Class<?> clazz : javadocClassWithoutAnnotation) {
+                System.out.println("Class: " + clazz.getName());
+            }
+            System.out.println();
+
+            System.out.println("Methods with javadoc:");
+            for (Class<?> clazz : classes) {
+                String classPath = clazz.getName().replace(".", "/") + ".java";
+                try {
+                    String sourceCode = new String(Files.readAllBytes(Paths.get("src/main/java", classPath)));
+                    CompilationUnit cu = StaticJavaParser.parse(sourceCode);
+
+                    cu.findAll(MethodDeclaration.class).forEach(method -> {
+                        if (method.getComment().isPresent() && method.getComment().get() instanceof JavadocComment) {
+                            String javadoc = ((JavadocComment) method.getComment().get()).getContent();
+                            System.out.println("Method: " + method.getDeclarationAsString());
+                            System.out.println("Javadoc:\n" + javadoc);
+                            System.out.println("-------------------------------");
+                        }
+                    });
+                } catch (IOException | ParseProblemException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
     }
 
     private static Class<? extends Annotation> getClassForName(String className) {
