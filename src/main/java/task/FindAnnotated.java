@@ -98,7 +98,9 @@ public class FindAnnotated {
                                 javadocClassWithoutAnnotation.add(clazz);
                             }
                         } else {
-                            annotationClassWithoutJdoc.add(clazz);
+                            if(annotationClasses.contains(clazz)){
+                                annotationClassWithoutJdoc.add(clazz);
+                            }
                         }
                     });
 
